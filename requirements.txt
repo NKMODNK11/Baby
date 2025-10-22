@@ -15,7 +15,7 @@ pillow==11.3.0
 psutil==7.0.0
 py-tgcalls==0.9.7
 pykeyboard
-kurigram>=2.2.12
+kurigram==2.2.13
 python-dotenv==1.0.1
 PyYAML==6.0.2
 requests
@@ -27,6 +27,7 @@ uvloop==0.21.0
 yt-dlp
 youtube_search==2.1.2
 youtube-search-python==1.6.6
+
 
 
 
