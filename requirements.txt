@@ -1,7 +1,7 @@
-aiofiles==24.1.0
-aiohttp==3.12.15
+aiofiles==25.1.0
+aiohttp==3.13.1
 async-lru==2.0.5
-beautifulsoup4==4.13.4
+beautifulsoup4==4.14.2
 dnspython
 ffmpeg-python
 gitpython==3.1.45
@@ -11,22 +11,23 @@ httpx==0.27.2
 motor
 numpy==1.26.4
 opencv-python
-pillow==11.3.0
-psutil==7.0.0
+pillow==12.0.0
+psutil==7.1.1
 py-tgcalls==0.9.7
 pykeyboard
 kurigram==2.2.13
 python-dotenv==1.0.1
-PyYAML==6.0.2
+pyyaml==6.0.3
 requests
 speedtest-cli==2.1.3
 spotipy==2.25.1
 TgCrypto==1.2.5
 unidecode
-uvloop==0.21.0
+uvloop==0.22.1
 yt-dlp
 youtube_search==2.1.2
 youtube-search-python==1.6.6
+
 
 
 
