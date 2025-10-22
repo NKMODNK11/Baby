@@ -8,7 +8,7 @@ from pyrogram.types import Message
 from AviaxMusic import app, Userbot
 from AviaxMusic.utils.database import get_assistant
 from pyrogram.errors import UserAlreadyParticipant, UserNotParticipant, ChatAdminRequired
-from pyrogram.types import Message, ChatPrivileges
+from pyrogram.types import Message
 import asyncio
 from typing import Optional
 from random import randint
@@ -55,3 +55,4 @@ async def play_logs(message, streamtype):
             except:
                 pass
         return
+
