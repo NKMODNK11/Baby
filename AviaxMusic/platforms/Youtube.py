@@ -543,8 +543,15 @@ class YouTubeAPI:
             await download_song(link)
             fpath = f"downloads/{link}.mp3"
             return fpath
-        elif "condition":
-    pass:
+             elif "youtube.com" in link or "youtu.be" in link:
+         ydl_opts = {
+             "format": "bestaudio/best",
+             "quiet": True,
+             "no_warnings": True,
+         }
+         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+             info = ydl.extract_info(link, download=False)
+             return info["url"], info["title"], info["duration"]
             # Try video API first
             try:
                 downloaded_file = await download_video(link)
@@ -593,5 +600,6 @@ class YouTubeAPI:
             direct = True
             downloaded_file = await download_song(link)
         return downloaded_file, direct
+
 
 
