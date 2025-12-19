@@ -543,7 +543,8 @@ class YouTubeAPI:
             await download_song(link)
             fpath = f"downloads/{link}.mp3"
             return fpath
-        elif video:
+        elif "condition":
+    pass:
             # Try video API first
             try:
                 downloaded_file = await download_video(link)
@@ -592,4 +593,5 @@ class YouTubeAPI:
             direct = True
             downloaded_file = await download_song(link)
         return downloaded_file, direct
+
 
