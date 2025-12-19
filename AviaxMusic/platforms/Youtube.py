@@ -10,8 +10,8 @@ from typing import Union
 from pyrogram.enums import MessageEntityType
 from pyrogram.types import Message
 from py_yt import VideosSearch, Playlist
-from AviaxMusic.utils.database import is_on_off
-from AviaxMusic.utils.formatters import time_to_seconds
+from AnonXMusic.utils.database import is_on_off
+from AnonXMusic.utils.formatters import time_to_seconds
 
 from config import API_URL, VIDEO_API_URL, API_KEY
 
@@ -592,3 +592,4 @@ class YouTubeAPI:
             direct = True
             downloaded_file = await download_song(link)
         return downloaded_file, direct
+
