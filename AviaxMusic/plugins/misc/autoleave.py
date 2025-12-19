@@ -41,7 +41,7 @@ async def auto_leave():
             except Exception as e:
                 logging.error(f"Error processing dialogs: {e}")
 
-asyncio.create_task(auto_leave())
+# asyncio.create_task(auto_leave())
                     
 async def auto_end():
     global autoend, counter
@@ -104,3 +104,4 @@ async def auto_end():
 
 
 asyncio.create_task(auto_end())
+
