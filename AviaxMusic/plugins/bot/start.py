@@ -2,6 +2,7 @@ import time
 from pyrogram import filters
 from pyrogram.enums import ChatType, ParseMode
 from pyrogram.types import (
+ from youtube_search_python.__future__ import VideosSearch
     InlineKeyboardButton,
     InlineKeyboardMarkup,
     Message,
@@ -211,4 +212,5 @@ async def welcome(client, message: Message):
                 await message.stop_propagation()
         except Exception as ex:
             print(ex)
+
 
