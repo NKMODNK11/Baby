@@ -82,7 +82,10 @@ def PlayWrapper(command):
                         disable_web_page_preview=True,
                     )
                 except TopicClosed:
-                    return
+                    video = True if (
+    message.command
+    and (message.command[0].startswith("v") or "-v" in message.text)
+) else None
 
         if message.command[0][0] == "c":
             chat_id = await get_cmode(message.chat.id)
@@ -107,48 +110,42 @@ def PlayWrapper(command):
                     return await message.reply_text(_["admin_13"])
                 if message.from_user.id not in admins:
                     return await message.reply_text(_["play_4"])
+userbot = await get_assistant(chat_id)
+assistant_me = await userbot.get_me()
 
-        video = True if (
-            message.command[0][0] == "v" or "-v" in message.text
-        ) else None
+try:
+    get = await app.get_chat_member(chat_id, assistant_me.id)
 
-        if message.command[0][-1] == "e":
-            if not await is_active_chat(chat_id):
-                return await message.reply_text(_["play_16"])
-            fplay = True
-        else:
-            fplay = None
+    if get.status in (
+        ChatMemberStatus.BANNED,
+        ChatMemberStatus.RESTRICTED,
+    ):
+        return await message.reply_text(
+            _["call_2"].format(
+                app.mention,
+                assistant_me.id,
+                assistant_me.first_name,
+                assistant_me.username,
+            )
+        )
 
-        if not await is_active_chat(chat_id):
-            userbot = await get_assistant(chat_id)
-            try:
-                get = await app.get_chat_member(chat_id, userbot.id)
-                if get.status in (
-                    ChatMemberStatus.BANNED,
-                    ChatMemberStatus.RESTRICTED,
-                ):
-                    return await message.reply_text(
-                        _["call_2"].format(
-                            app.mention, userbot.id, userbot.name, userbot.username
-                        )
-                    )
-            except ChatAdminRequired:
-                return await message.reply_text(_["call_1"])
-            except UserNotParticipant:
-                try:
-                    invitelink = await app.export_chat_invite_link(chat_id)
-                except:
-                    return await message.reply_text(_["call_1"])
+except ChatAdminRequired:
+    return await message.reply_text(_["call_1"])
 
-                msg = await message.reply_text(_["call_4"].format(app.mention))
-                try:
-                    await asyncio.sleep(1)
-                    await userbot.join_chat(invitelink)
-                    await asyncio.sleep(2)
-                    await msg.edit(_["call_5"].format(app.mention))
-                except InviteRequestSent:
-                    await app.approve_chat_join_request(chat_id, userbot.id)
+except UserNotParticipant:
+    try:
+        invitelink = await app.export_chat_invite_link(chat_id)
+    except:
+        return await message.reply_text(_["call_1"])
 
+    msg = await message.reply_text(_["call_4"].format(app.mention))
+    try:
+        await asyncio.sleep(1)
+        await userbot.join_chat(invitelink)
+        await asyncio.sleep(2)
+        await msg.edit(_["call_5"].format(app.mention))
+    except InviteRequestSent:
+        await app.approve_chat_join_request(chat_id, assistant_me.id)
         return await command(
             client,
             message,
@@ -162,3 +159,4 @@ def PlayWrapper(command):
         )
 
     return wrapper
+
