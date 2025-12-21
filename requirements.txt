@@ -9,7 +9,6 @@ heroku3
 httpx
 motor
 numpy
-opencv-python
 pillow
 psutil
 py-tgcalls==2.2.8
