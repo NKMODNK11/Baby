@@ -54,7 +54,7 @@ def PlayWrapper(command):
         except:
             pass
 
-        if bool(regex.search(message.text)):
+        if message.text and bool(regex.search(message.text)):
             return
 
         audio_telegram = (
@@ -68,12 +68,9 @@ def PlayWrapper(command):
 
         url = await YouTube.url(message)
 
-        # ✅ SAFE BLOCK (Slowmode + TopicClosed proof)
+        # SAFE BLOCK
         if audio_telegram is None and video_telegram is None and url is None:
-            if len(message.command) < 2:
-                if "stream" in message.command:
-                    return await message.reply_text(_["str_1"])
-
+            if not message.command or len(message.command) < 2:
                 buttons = botplaylist_markup(_)
                 try:
                     return await message.reply_text(
@@ -82,20 +79,29 @@ def PlayWrapper(command):
                         disable_web_page_preview=True,
                     )
                 except TopicClosed:
-                    video = True if (
-    message.command
-    and (message.command[0].startswith("v") or "-v" in message.text)
-) else None
+                    return
 
-        if message.command[0][0] == "c":
+        # video flag (SAFE)
+        video = (
+            True
+            if message.command
+            and (message.command[0].startswith("v") or "-v" in message.text)
+            else None
+        )
+
+        # force play
+        fplay = True if message.command and message.command[0].endswith("e") else None
+
+        # channel play
+        if message.command and message.command[0].startswith("c"):
             chat_id = await get_cmode(message.chat.id)
             if chat_id is None:
                 return await message.reply_text(_["setting_7"])
             try:
                 chat = await app.get_chat(chat_id)
+                channel = chat.title
             except:
                 return await message.reply_text(_["cplay_4"])
-            channel = chat.title
         else:
             chat_id = message.chat.id
             channel = None
@@ -106,46 +112,48 @@ def PlayWrapper(command):
         if playty != "Everyone":
             if message.from_user.id not in SUDOERS:
                 admins = adminlist.get(message.chat.id)
-                if not admins:
-                    return await message.reply_text(_["admin_13"])
-                if message.from_user.id not in admins:
+                if not admins or message.from_user.id not in admins:
                     return await message.reply_text(_["play_4"])
-userbot = await get_assistant(chat_id)
-assistant_me = await userbot.get_me()
 
-try:
-    get = await app.get_chat_member(chat_id, assistant_me.id)
+        # assistant check
+        if not await is_active_chat(chat_id):
+            userbot = await get_assistant(chat_id)
+            assistant = await userbot.get_me()
 
-    if get.status in (
-        ChatMemberStatus.BANNED,
-        ChatMemberStatus.RESTRICTED,
-    ):
-        return await message.reply_text(
-            _["call_2"].format(
-                app.mention,
-                assistant_me.id,
-                assistant_me.first_name,
-                assistant_me.username,
-            )
-        )
+            try:
+                get = await app.get_chat_member(chat_id, assistant.id)
 
-except ChatAdminRequired:
-    return await message.reply_text(_["call_1"])
+                if get.status in (
+                    ChatMemberStatus.BANNED,
+                    ChatMemberStatus.RESTRICTED,
+                ):
+                    return await message.reply_text(
+                        _["call_2"].format(
+                            app.mention,
+                            assistant.id,
+                            assistant.first_name,
+                            assistant.username,
+                        )
+                    )
 
-except UserNotParticipant:
-    try:
-        invitelink = await app.export_chat_invite_link(chat_id)
-    except:
-        return await message.reply_text(_["call_1"])
+            except ChatAdminRequired:
+                return await message.reply_text(_["call_1"])
 
-    msg = await message.reply_text(_["call_4"].format(app.mention))
-    try:
-        await asyncio.sleep(1)
-        await userbot.join_chat(invitelink)
-        await asyncio.sleep(2)
-        await msg.edit(_["call_5"].format(app.mention))
-    except InviteRequestSent:
-        await app.approve_chat_join_request(chat_id, assistant_me.id)
+            except UserNotParticipant:
+                try:
+                    invitelink = await app.export_chat_invite_link(chat_id)
+                except:
+                    return await message.reply_text(_["call_1"])
+
+                msg = await message.reply_text(_["call_4"].format(app.mention))
+                try:
+                    await asyncio.sleep(1)
+                    await userbot.join_chat(invitelink)
+                    await asyncio.sleep(2)
+                    await msg.edit(_["call_5"].format(app.mention))
+                except InviteRequestSent:
+                    await app.approve_chat_join_request(chat_id, assistant.id)
+
         return await command(
             client,
             message,
@@ -159,4 +167,3 @@ except UserNotParticipant:
         )
 
     return wrapper
-
