@@ -7,6 +7,7 @@ from pyrogram.errors import (
     InviteRequestSent,
     UserAlreadyParticipant,
     UserNotParticipant,
+    TopicClosed,
 )
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
@@ -43,8 +44,8 @@ def PlayWrapper(command):
         if await is_maintenance() is False:
             if message.from_user.id not in SUDOERS:
                 return await message.reply_text(
-                    text=f"{app.mention} ɪs ᴜɴᴅᴇʀ ᴍᴀɪɴᴛᴇɴᴀɴᴄᴇ, ᴠɪsɪᴛ "
-                         f"<a href={SUPPORT_GROUP}>sᴜᴘᴘᴏʀᴛ ᴄʜᴀᴛ</a>",
+                    f"{app.mention} ɪs ᴜɴᴅᴇʀ ᴍᴀɪɴᴛᴇɴᴀɴᴄᴇ, "
+                    f"ᴠɪsɪᴛ <a href={SUPPORT_GROUP}>sᴜᴘᴘᴏʀᴛ ᴄʜᴀᴛ</a>",
                     disable_web_page_preview=True,
                 )
 
@@ -67,18 +68,21 @@ def PlayWrapper(command):
 
         url = await YouTube.url(message)
 
-        # ✅ FIXED PART (Slow-mode safe)
+        # ✅ SAFE BLOCK (Slowmode + TopicClosed proof)
         if audio_telegram is None and video_telegram is None and url is None:
             if len(message.command) < 2:
                 if "stream" in message.command:
                     return await message.reply_text(_["str_1"])
 
                 buttons = botplaylist_markup(_)
-                return await message.reply_text(
-                    _["play_18"],
-                    reply_markup=InlineKeyboardMarkup(buttons),
-                    disable_web_page_preview=True,
-                )
+                try:
+                    return await message.reply_text(
+                        _["play_18"],
+                        reply_markup=InlineKeyboardMarkup(buttons),
+                        disable_web_page_preview=True,
+                    )
+                except TopicClosed:
+                    return
 
         if message.command[0][0] == "c":
             chat_id = await get_cmode(message.chat.id)
@@ -104,10 +108,9 @@ def PlayWrapper(command):
                 if message.from_user.id not in admins:
                     return await message.reply_text(_["play_4"])
 
-        if message.command[0][0] == "v" or "-v" in message.text:
-            video = True
-        else:
-            video = True if message.command[0][1] == "v" else None
+        video = True if (
+            message.command[0][0] == "v" or "-v" in message.text
+        ) else None
 
         if message.command[0][-1] == "e":
             if not await is_active_chat(chat_id):
@@ -119,11 +122,7 @@ def PlayWrapper(command):
         if not await is_active_chat(chat_id):
             userbot = await get_assistant(chat_id)
             try:
-                try:
-                    get = await app.get_chat_member(chat_id, userbot.id)
-                except ChatAdminRequired:
-                    return await message.reply_text(_["call_1"])
-
+                get = await app.get_chat_member(chat_id, userbot.id)
                 if get.status in (
                     ChatMemberStatus.BANNED,
                     ChatMemberStatus.RESTRICTED,
@@ -133,18 +132,20 @@ def PlayWrapper(command):
                             app.mention, userbot.id, userbot.name, userbot.username
                         )
                     )
+            except ChatAdminRequired:
+                return await message.reply_text(_["call_1"])
             except UserNotParticipant:
                 try:
                     invitelink = await app.export_chat_invite_link(chat_id)
                 except:
                     return await message.reply_text(_["call_1"])
 
-                myu = await message.reply_text(_["call_4"].format(app.mention))
+                msg = await message.reply_text(_["call_4"].format(app.mention))
                 try:
                     await asyncio.sleep(1)
                     await userbot.join_chat(invitelink)
                     await asyncio.sleep(2)
-                    await myu.edit(_["call_5"].format(app.mention))
+                    await msg.edit(_["call_5"].format(app.mention))
                 except InviteRequestSent:
                     await app.approve_chat_join_request(chat_id, userbot.id)
 
