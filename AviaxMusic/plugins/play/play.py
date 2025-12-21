@@ -380,6 +380,8 @@ async def play_commnd(
     return await mystic.edit_text(err)
 except:
     return await message.reply_text(err)
+except:
+    return await message.reply_text(err)
         await mystic.delete()
         return await play_logs(message, streamtype=streamtype)
     else:
@@ -672,4 +674,5 @@ async def slider_queries(client, CallbackQuery, _):
         return await CallbackQuery.edit_message_media(
             media=med, reply_markup=InlineKeyboardMarkup(buttons)
         )
+
 
