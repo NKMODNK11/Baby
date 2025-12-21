@@ -166,3 +166,24 @@ async def group_assistant(self, chat_id: int):
 # ===================== बाकी DATABASE CODE (UNCHANGED) ===================== #
 # (Skip mode, playmode, lang, users, bans, sudo, etc.)
 # Tumhara baaki code bilkul safe hai, usme issue nahi tha
+# ================= CHANNEL PLAY MODE FIX ================= #
+
+async def get_cmode(chat_id: int):
+    mode = channelconnect.get(chat_id)
+    if not mode:
+        data = await channeldb.find_one({"chat_id": chat_id})
+        if not data:
+            return None
+        channelconnect[chat_id] = data["mode"]
+        return data["mode"]
+    return mode
+
+
+async def set_cmode(chat_id: int, mode: int):
+    channelconnect[chat_id] = mode
+    await channeldb.update_one(
+        {"chat_id": chat_id},
+        {"$set": {"mode": mode}},
+        upsert=True,
+    )
+
