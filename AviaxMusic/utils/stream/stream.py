@@ -31,11 +31,8 @@ async def stream(
 ):
     if not result:
         return
-
     if forceplay:
         await Aviax.force_stop_stream(chat_id)
-
-
     if streamtype == "playlist":
         msg = f"{_['play_19']}\n\n"
         count = 0
@@ -52,13 +49,10 @@ async def stream(
                 ) = await YouTube.details(search, False if spotify else True)
             except:
                 continue
-
             if str(duration_min) == "None":
                 continue
-
             if duration_sec > config.DURATION_LIMIT:
                 continue
-
             if await is_active_chat(chat_id):
                 await put_queue(
                     chat_id,
@@ -85,10 +79,6 @@ async def stream(
                     )
                 except:
                     raise AssistantErr(_["play_14"])
-                
-                if not file_path:
-                    raise AssistantErr(_["play_14"])
-
                 await Aviax.join_call(
                     chat_id,
                     original_chat_id,
@@ -123,7 +113,6 @@ async def stream(
                 )
                 db[chat_id][0]["mystic"] = run
                 db[chat_id][0]["markup"] = "stream"
-
         if count == 0:
             return
         else:
@@ -141,7 +130,6 @@ async def stream(
                 caption=_["play_21"].format(position, link),
                 reply_markup=upl,
             )
-
     elif streamtype == "youtube":
         link = result["link"]
         vidid = result["vidid"]
@@ -149,11 +137,12 @@ async def stream(
         duration_min = result["duration_min"]
         thumbnail = result["thumb"]
         status = True if video else None
-
-
+    
         current_queue = db.get(chat_id)
+
+        
         if current_queue is not None and len(current_queue) >= 10:
-             return await app.send_message(original_chat_id, "You can't add more than 10 songs to the queue.")
+            return await app.send_message(original_chat_id, "You can't add more than 10 songs to the queue.")
 
         try:
             file_path, direct = await YouTube.download(
@@ -161,9 +150,6 @@ async def stream(
             )
         except:
             raise AssistantErr(_["play_14"])
-        
-        if not file_path:
-             raise AssistantErr(_["play_14"])
 
         if await is_active_chat(chat_id):
             await put_queue(
@@ -221,15 +207,10 @@ async def stream(
             )
             db[chat_id][0]["mystic"] = run
             db[chat_id][0]["markup"] = "stream"
-
     elif streamtype == "soundcloud":
         file_path = result["filepath"]
         title = result["title"]
         duration_min = result["duration_min"]
-        
-        if not file_path:
-            raise AssistantErr(_["play_14"])
-
         if await is_active_chat(chat_id):
             await put_queue(
                 chat_id,
@@ -276,17 +257,12 @@ async def stream(
             )
             db[chat_id][0]["mystic"] = run
             db[chat_id][0]["markup"] = "tg"
-
     elif streamtype == "telegram":
         file_path = result["path"]
         link = result["link"]
         title = (result["title"]).title()
         duration_min = result["dur"]
         status = True if video else None
-        
-        if not file_path:
-            raise AssistantErr(_["play_5"])
-
         if await is_active_chat(chat_id):
             await put_queue(
                 chat_id,
@@ -333,8 +309,6 @@ async def stream(
             )
             db[chat_id][0]["mystic"] = run
             db[chat_id][0]["markup"] = "tg"
-
-
     elif streamtype == "live":
         link = result["link"]
         vidid = result["vidid"]
@@ -342,7 +316,6 @@ async def stream(
         thumbnail = result["thumb"]
         duration_min = "Live Track"
         status = True if video else None
-        
         if await is_active_chat(chat_id):
             await put_queue(
                 chat_id,
@@ -368,11 +341,6 @@ async def stream(
             n, file_path = await YouTube.video(link)
             if n == 0:
                 raise AssistantErr(_["str_3"])
-            
-
-            if not file_path:
-                raise AssistantErr(_["play_14"])
-
             await Aviax.join_call(
                 chat_id,
                 original_chat_id,
@@ -407,17 +375,10 @@ async def stream(
             )
             db[chat_id][0]["mystic"] = run
             db[chat_id][0]["markup"] = "tg"
-
-
     elif streamtype == "index":
         link = result
         title = "ɪɴᴅᴇx ᴏʀ ᴍ3ᴜ8 ʟɪɴᴋ"
         duration_min = "00:00"
-        
-
-        if not link:
-             raise AssistantErr(_["play_14"])
-
         if await is_active_chat(chat_id):
             await put_queue_index(
                 chat_id,
@@ -465,3 +426,4 @@ async def stream(
             db[chat_id][0]["mystic"] = run
             db[chat_id][0]["markup"] = "tg"
             await mystic.delete()
+
