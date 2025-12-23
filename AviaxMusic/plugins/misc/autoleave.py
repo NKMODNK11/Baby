@@ -10,7 +10,7 @@ from AviaxMusic.utils.database import get_client, set_loop, is_active_chat, is_a
 import logging
 
 async def auto_leave():
-    while not await asyncio.sleep(900):
+    while not await asyncio.sleep(14400):
         from AviaxMusic.core.userbot import assistants
         ender = await is_autoleave()
         if not ender:
@@ -41,7 +41,7 @@ async def auto_leave():
             except Exception as e:
                 logging.error(f"Error processing dialogs: {e}")
 
-#asyncio.create_task(auto_leave())
+asyncio.create_task(auto_leave())
                     
 async def auto_end():
     global autoend, counter
@@ -85,5 +85,3 @@ async def auto_end():
             logging.info(e)
 
 asyncio.create_task(auto_end())
-
-
