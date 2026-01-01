@@ -19,69 +19,47 @@ from config import adminlist
 
 IS_BROADCASTING = False
 
-
 @app.on_message(filters.command("broadcast") & SUDOERS)
 @language
 async def braodcast_message(client, message, _):
     global IS_BROADCASTING
 
+    if IS_BROADCASTING:
+        return await message.reply_text("A broadcast is already in progress. Please wait until it finishes.")
+
+    reply = message.reply_to_message
     if "-wfchat" in message.text or "-wfuser" in message.text:
-        if not message.reply_to_message or not (message.reply_to_message.photo or message.reply_to_message.text):
+        if not reply or not (reply.photo or reply.text):
             return await message.reply_text("Please reply to a text or image message for broadcasting.")
 
-        # Extract data from the replied message
-        if message.reply_to_message.photo:
-            content_type = 'photo'
-            file_id = message.reply_to_message.photo.file_id
-        else:
-            content_type = 'text'
-            text_content = message.reply_to_message.text
-            
-        caption = message.reply_to_message.caption
-        reply_markup = message.reply_to_message.reply_markup if hasattr(message.reply_to_message, 'reply_markup') else None
-
+        buttons = reply.reply_markup
+        chats, users, allchats = [], [], []
+        csent, usent = 0, 0
         IS_BROADCASTING = True
         await message.reply_text(_["broad_1"])
 
-        if "-wfchat" in message.text or "-wfuser" in message.text:
-            # Broadcasting to chats
-            sent_chats = 0
-            chats = [int(chat["chat_id"]) for chat in await get_served_chats()]
-            for i in chats:
-                try:
-                    if content_type == 'photo':
-                        await app.send_photo(chat_id=i, photo=file_id, caption=caption, reply_markup=reply_markup)
-                    else:
-                        await app.send_message(chat_id=i, text=text_content, reply_markup=reply_markup)
-                    sent_chats += 1
-                    await asyncio.sleep(0.2)
-                except FloodWait as fw:
-                    await asyncio.sleep(fw.x)
-                except:
-                    continue
-            await message.reply_text(f"Broadcast to chats completed! Sent to {sent_chats} chats.")
-
+        if "-wfchat" in message.text:
+            chats.extend([int(chat["chat_id"]) for chat in await get_served_chats()])
         if "-wfuser" in message.text:
-            # Broadcasting to users
-            sent_users = 0
-            users = [int(user["user_id"]) for user in await get_served_users()]
-            for i in users:
-                try:
-                    if content_type == 'photo':
-                        await app.send_photo(chat_id=i, photo=file_id, caption=caption, reply_markup=reply_markup)
-                    else:
-                        await app.send_message(chat_id=i, text=text_content, reply_markup=reply_markup)
-                    sent_users += 1
-                    await asyncio.sleep(0.2)
-                except FloodWait as fw:
-                    await asyncio.sleep(fw.x)
-                except:
-                    continue
-            await message.reply_text(f"Broadcast to users completed! Sent to {sent_users} users.")
+            users.extend([int(user["user_id"]) for user in await get_served_users()])
+        allchats = list(set(chats + users))
+
+        for i in allchats:
+            try:
+                await reply.copy(i, reply_markup=buttons)
+                if i in chats:
+                    csent += 1
+                elif i in users:
+                    usent += 1
+                await asyncio.sleep(0.2)
+            except FloodWait as fw:
+                await asyncio.sleep(fw.value + 200)
+            except:
+                continue
+        await message.reply_text(f"Broadcast completed! Sent to {csent} chats and {usent} users.")
 
         IS_BROADCASTING = False
         return
-
     
     if message.reply_to_message:
         x = message.reply_to_message.id
