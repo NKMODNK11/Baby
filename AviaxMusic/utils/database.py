@@ -1,6 +1,4 @@
 import random
-import asyncio
-from datetime import date
 from typing import Dict, List, Union
 
 from AviaxMusic import userbot

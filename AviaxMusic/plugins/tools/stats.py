@@ -6,7 +6,7 @@ from pyrogram import __version__ as pyrover
 from pyrogram import filters
 from pyrogram.errors import MessageIdInvalid
 from pyrogram.types import InputMediaPhoto, Message
-from pytgcalls.__version__ import __version__ as pytgver
+from pytgcalls import __version__ as pytgver
 
 import config
 from AviaxMusic import app
@@ -22,7 +22,7 @@ from config import BANNED_USERS
 @app.on_message(filters.command(["stats", "gstats"]) & filters.group & ~BANNED_USERS)
 @language
 async def stats_global(client, message: Message, _):
-    upl = stats_buttons(_, True if message.from_user.id in SUDOERS else False)
+    upl = stats_buttons(_, message.from_user.id in SUDOERS)
     await message.reply_photo(
         photo=config.STATS_IMG_URL,
         caption=_["gstats_2"].format(app.mention),
@@ -33,7 +33,7 @@ async def stats_global(client, message: Message, _):
 @app.on_callback_query(filters.regex("stats_back") & ~BANNED_USERS)
 @languageCB
 async def home_stats(client, CallbackQuery, _):
-    upl = stats_buttons(_, True if CallbackQuery.from_user.id in SUDOERS else False)
+    upl = stats_buttons(_, CallbackQuery.from_user.id in SUDOERS)
     await CallbackQuery.edit_message_text(
         text=_["gstats_2"].format(app.mention),
         reply_markup=upl,
@@ -134,4 +134,3 @@ async def bot_stats(client, CallbackQuery, _):
         await CallbackQuery.message.reply_photo(
             photo=config.STATS_IMG_URL, caption=text, reply_markup=upl
         )
-

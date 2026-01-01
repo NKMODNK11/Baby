@@ -1,21 +1,18 @@
-import asyncio
 import os
 import re
 import json
+import random
+import aiohttp
+import asyncio
 from typing import Union
-import requests
+
 import yt_dlp
 from pyrogram.enums import MessageEntityType
 from pyrogram.types import Message
 from py_yt import VideosSearch
+
 from AviaxMusic.utils.database import is_on_off
 from AviaxMusic.utils.formatters import time_to_seconds
-import os
-import glob
-import random
-import logging
-import aiohttp
-import config
 from config import API_URL, VIDEO_API_URL, API_KEY
 
 
@@ -227,28 +224,29 @@ class YouTubeAPI:
             return False
 
     async def url(self, message_1: Message) -> Union[str, None]:
+        link = None
         messages = [message_1]
+        entities = [MessageEntityType.URL, MessageEntityType.TEXT_LINK]
+
         if message_1.reply_to_message:
             messages.append(message_1.reply_to_message)
-        text = ""
-        offset = None
-        length = None
+
         for message in messages:
-            if offset:
-                break
             if message.entities:
                 for entity in message.entities:
-                    if entity.type == MessageEntityType.URL:
-                        text = message.text or message.caption
-                        offset, length = entity.offset, entity.length
+                    if entity.type in entities:
+                        link = entity.url
                         break
-            elif message.caption_entities:
+
+            if message.caption_entities:
                 for entity in message.caption_entities:
-                    if entity.type == MessageEntityType.TEXT_LINK:
-                        return entity.url
-        if offset in (None,):
-            return None
-        return text[offset : offset + length]
+                    if entity.type in entities:
+                        link = entity.url
+                        break
+
+        if link:
+            return link.split("&si")[0].split("?si")[0]
+        return None
 
     async def details(self, link: str, videoid: Union[bool, str] = None):
         if videoid:
