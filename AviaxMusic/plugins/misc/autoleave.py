@@ -1,7 +1,6 @@
 import asyncio
 from datetime import datetime
 from pyrogram.enums import ChatType
-from pytgcalls.exceptions import GroupCallNotFound
 import config
 from AviaxMusic import app
 from AviaxMusic.misc import db
@@ -58,9 +57,6 @@ async def auto_end():
             for chat_id in chatss:
                 try:
                     users = len(await Aviax.call_listeners(chat_id))
-                except GroupCallNotFound:
-                    users = 1
-                    nocall = True
                 except Exception:
                     users = 100
                 timer = autoend.get(chat_id)
