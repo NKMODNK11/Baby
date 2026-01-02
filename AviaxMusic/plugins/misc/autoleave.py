@@ -1,12 +1,13 @@
 import asyncio
 from datetime import datetime
 from pyrogram.enums import ChatType
+
 import config
 from AviaxMusic import app
 from AviaxMusic.misc import db
 from AviaxMusic.core.call import Aviax, autoend, counter
 from AviaxMusic.utils.database import get_client, set_loop, is_active_chat, is_autoend, is_autoleave
-import logging
+
 
 async def auto_leave():
     while not await asyncio.sleep(3600):
@@ -34,12 +35,11 @@ async def auto_leave():
                                 try:
                                     await client.leave_chat(i.chat.id)
                                     left += 1
-                                except Exception as e:
-                                    logging.error(f"Error leaving chat {i.chat.id}: {e}")
+                                except Exception:
                                     continue
                                 await asyncio.sleep(20)
-            except Exception as e:
-                logging.error(f"Error processing dialogs: {e}")
+            except Exception:
+                pass
 
 asyncio.create_task(auto_leave())
                     
@@ -47,10 +47,10 @@ async def auto_end():
     global autoend, counter
     while True:
         await asyncio.sleep(60)
+        ender = await is_autoend()
+        if not ender:
+            return
         try:
-            ender = await is_autoend()
-            if not ender:
-                continue
             chatss = autoend
             keys_to_remove = []
             nocall = False
@@ -58,7 +58,7 @@ async def auto_end():
                 try:
                     users = len(await Aviax.call_listeners(chat_id))
                 except Exception:
-                    users = 100
+                    continue
                 timer = autoend.get(chat_id)
                 if users == 1:
                     res = await set_loop(chat_id, 0)
@@ -71,14 +71,9 @@ async def auto_end():
                         await Aviax.stop_stream(chat_id)
                     except Exception:
                         pass
-                    try:
-                        if not nocall:
-                            await app.send_message(chat_id, "» ʙᴏᴛ ᴀᴜᴛᴏᴍᴀᴛɪᴄᴀʟʟʏ ʟᴇғᴛ ᴠɪᴅᴇᴏᴄʜᴀᴛ ʙᴇᴄᴀᴜsᴇ ɴᴏ ᴏɴᴇ ᴡᴀs ʟɪsᴛᴇɴɪɴɢ ᴏɴ ᴠɪᴅᴇᴏᴄʜᴀᴛ.")
-                    except Exception:
-                        pass
             for chat_id in keys_to_remove:
                 del autoend[chat_id]
-        except Exception as e:
-            logging.info(e)
+        except Exception:
+            pass
 
 asyncio.create_task(auto_end())
