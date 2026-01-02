@@ -12,7 +12,7 @@ font1 = ImageFont.truetype("AviaxMusic/assets/font2.ttf", 45)
 font2 = ImageFont.truetype("AviaxMusic/assets/font2.ttf", 30)
 circle = Image.new("RGBA", (1280, 720), 0)
 
-async def get_thumb(video_id: str, center_crop = 250, img_size = (1280, 720)) -> str:
+async def gen_thumb(video_id: str, center_crop = 250, img_size = (1280, 720)) -> str:
     out = f"cache/{video_id}.png"
     if os.path.isfile(out):
         return out
@@ -99,3 +99,4 @@ async def get_thumb(video_id: str, center_crop = 250, img_size = (1280, 720)) ->
     except Exception as e:
         print(e)
         return YOUTUBE_IMG_URL
+
