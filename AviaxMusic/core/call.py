@@ -108,7 +108,7 @@ class Call(PyTgCalls):
             await _clear_(chat_id)
             await assistant.leave_call(chat_id)
         except Exception as ex:
-            print(ex)
+            raise Exception(f"Error: {ex}")
 
     async def stop_stream_force(self, chat_id: int):
         for client in self.clients:
@@ -551,6 +551,7 @@ class Call(PyTgCalls):
 
 
 Aviax = Call()
+
 
 
 
