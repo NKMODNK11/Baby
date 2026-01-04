@@ -126,6 +126,10 @@ gstats_5 : "<b><u>{0} 𝖲𝗍𝖺𝗍𝗌 𝖠𝗇𝖽 𝖨𝗇𝖿𝗈𝗋𝗆
 playcb_1 : "𝖳𝗁𝗂𝗌 𝖨𝗌 𝖭𝗈𝗍 𝖥𝗈𝗋 𝖸𝗈𝗎 ."
 playcb_2 : "𝖦𝖾𝗍𝗍𝗂𝗇𝗀 𝖭𝖾𝗑𝗍 𝖱𝖾𝗌𝗎𝗅𝗍𝗌 , \n\n𝖯𝗅𝖾𝖺𝗌𝖾 𝖶𝖺𝗂𝗍 ..."
 
+cplay_1 : "You can play music in channels from this chat[{0}] to any channel or your chat's linked channel.\n\n**For linked channel:**\n`/{1} linked`\n\n**For any other channel:**\n`/{1} [Channel ID]`"
+cplay_2 : "This chat has no linked channel."
+cplay_3 : "Channel Defined to {0}\n\n__Channel ID__: {1}"
+cplay_4 : "Failed to get channel.\n\nMake sure you have added bot in your channel and promoted it as admin.\nEdit or Change channel via /channelplay"
 cplay_5 : "𝖮𝗇𝗅𝗒 𝖢𝗁𝖺𝗇𝗇𝖾𝗅𝗌 𝖠𝗋𝖾 𝖲𝗎𝗉𝗉𝗈𝗋𝗍𝖾𝖽 ."
 cplay_6 : "𝖸𝗈𝗎 𝖭𝖾𝖾𝖽 𝖳𝗈 𝖡𝖾 𝖳𝗁𝖾 <b>𝖮𝗐𝗇𝖾𝗋</b> 𝖮𝖿 𝖳𝗁𝖾 𝖢𝗁𝖺𝗇𝗇𝖾𝗅 {0} 𝖳𝗈 𝖢𝗈𝗇𝗇𝖾𝖼𝗍 𝖳𝗈 𝖳𝗁𝗂𝗌 𝖦𝗋𝗈𝗎𝗉 .\n<b>𝖢𝗁𝖺𝗇𝗇𝖾𝗅'𝗌 𝖮𝗐𝗇𝖾𝗋 :</b> @{1}\n\n𝖠𝗅𝗍𝖾𝗋𝗇𝖺𝗍𝗂𝗏𝖾𝗅𝗒 𝖸𝗈𝗎 𝖢𝖺𝗇 𝖫𝗂𝗇𝗄 𝖸𝗈𝗎𝗋 𝖦𝗋𝗈𝗎𝗉 𝖳𝗈 𝖳𝗁𝖺𝗍 𝖢𝗁𝖺𝗇𝗇𝖾𝗅 𝖠𝗇𝖽 𝖳𝗁𝖾𝗇 𝖳𝗋𝗒 𝖢𝗈𝗇𝗇𝖾𝖼𝗍𝗂𝗇𝗀 𝖶𝗂𝗍𝗁 <code>/channelplay linked</code>"
 cplay_7 : "𝖢𝗁𝖺𝗇𝗇𝖾𝗅 𝖯𝗅𝖺𝗒 𝖣𝗂𝗌𝖺𝖻𝗅𝖾𝖽 ."

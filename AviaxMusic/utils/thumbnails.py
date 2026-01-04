@@ -90,13 +90,11 @@ async def gen_thumb(video_id: str, center_crop = 250, img_size = (1280, 720)) ->
 
     try:
         os.remove(f"cache/thumb{video_id}.png")
-    except FileNotFoundError:
+    except Exception:
         pass
 
     try:
         bg.save(out)
         return out
-    except Exception as e:
-        print(e)
+    except Exception:
         return YOUTUBE_IMG_URL
-
