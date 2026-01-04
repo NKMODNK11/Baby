@@ -35,10 +35,10 @@ counter = {}
 
 
 async def _clear_(chat_id):
-    if chat_id in db:
-        db[chat_id] = []
+    db[chat_id] = []
     await remove_active_video_chat(chat_id)
     await remove_active_chat(chat_id)
+
 
 
 
