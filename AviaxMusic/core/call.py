@@ -297,7 +297,8 @@ class Call(PyTgCalls):
             if users == 1:
                 autoend[chat_id] = datetime.now() + timedelta(minutes=1)
 
-    async def change_stream(self, client, chat_id):
+    async def change_stream(self, chat_id):
+        client = await group_assistant(self, chat_id)
         check = db.get(chat_id)
         popped = None
         loop = await get_loop(chat_id)
@@ -540,7 +541,7 @@ class Call(PyTgCalls):
             async def update_handler(_, update: types.Update) -> None:
                 if isinstance(update, types.StreamEnded):
                     if update.stream_type == types.StreamEnded.Type.AUDIO:
-                        await self.change_stream(client, update.chat_id)
+                        await self.change_stream(update.chat_id)
                 elif isinstance(update, types.ChatUpdate):
                     if update.status in [
                         types.ChatUpdate.Status.KICKED,
