@@ -224,25 +224,25 @@ class YouTubeAPI:
             return False
 
     async def url(self, message_1: Message) -> Union[str, None]:
-        link = None
         messages = [message_1]
-        entities = [MessageEntityType.URL, MessageEntityType.TEXT_LINK]
-
         if message_1.reply_to_message:
             messages.append(message_1.reply_to_message)
-
+        text = ""
+        offset = length = link = None
         for message in messages:
+            if offset:
+                break
             if message.entities:
                 for entity in message.entities:
-                    if entity.type in entities:
-                        link = entity.url
+                    if entity.type == MessageEntityType.URL:
+                        text = message.text or message.caption
+                        offset, length = entity.offset, entity.length
+                        link = text[offset : offset + length]
                         break
-
-            if message.caption_entities:
+            elif message.caption_entities:
                 for entity in message.caption_entities:
-                    if entity.type in entities:
+                    if entity.type == MessageEntityType.TEXT_LINK:
                         link = entity.url
-                        break
 
         if link:
             return link.split("&si")[0].split("?si")[0]

@@ -311,11 +311,11 @@ class Call(PyTgCalls):
             if not check:
                 await _clear_(chat_id)
                 return await client.leave_call(chat_id)
-        except:
+        except Exception:
             try:
                 await _clear_(chat_id)
                 return await client.leave_call(chat_id)
-            except:
+            except Exception:
                 return
         else:
             queued = check[0]["file"]
