@@ -54,25 +54,24 @@ class Call(PyTgCalls):
 
     async def pause_stream(self, chat_id: int):
         assistant = await group_assistant(self, chat_id)
-        await assistant.pause_stream(chat_id)
+        await assistant.pause(chat_id)
 
     async def resume_stream(self, chat_id: int):
         assistant = await group_assistant(self, chat_id)
-        await assistant.resume_stream(chat_id)
+        await assistant.resume(chat_id)
 
     async def stop_stream(self, chat_id: int):
         assistant = await group_assistant(self, chat_id)
         try:
             await _clear_(chat_id)
-            await assistant.leave_group_call(chat_id)
+            await assistant.leave_call(chat_id)
         except:
             pass
 
     async def stop_stream_force(self, chat_id: int):
-        # self.clients check taaki loop crash na ho
         for client in self.clients:
             try:
-                await client.leave_group_call(chat_id)
+                await client.leave_call(chat_id)
             except:
                 pass
         try:
@@ -111,20 +110,6 @@ class Call(PyTgCalls):
         )
         await assistant.play(chat_id, stream)
 
-    async def force_stop_stream(self, chat_id: int):
-        assistant = await group_assistant(self, chat_id)
-        try:
-            check = db.get(chat_id)
-            check.pop(0)
-        except:
-            pass
-        await remove_active_video_chat(chat_id)
-        await remove_active_chat(chat_id)
-        try:
-            await assistant.leave_group_call(chat_id)
-        except:
-            pass
-
     async def join_call(self, chat_id: int, original_chat_id: int, link, video: Union[bool, str] = None, image: Union[bool, str] = None):
         assistant = await group_assistant(self, chat_id)
         language = await get_lang(chat_id)
@@ -136,28 +121,19 @@ class Call(PyTgCalls):
             video_flags=types.MediaStream.Flags.AUTO_DETECT if video else types.MediaStream.Flags.IGNORE,
         )
         try:
-            # join_group_call is better for new pytgcalls versions
-            await assistant.join_group_call(chat_id, stream)
+            # FIX: join_group_call ko hata kar play use kiya jo purane version ke liye hai
+            await assistant.play(chat_id, stream)
         except exceptions.NoActiveGroupCall:
             raise AssistantErr(_["call_8"])
         except (ConnectionNotFound, TelegramServerError):
             raise AssistantErr(_["call_10"])
         except Exception as e:
-            raise AssistantErr(f"Error joining call: {e}")
+            raise AssistantErr(f"Assistant Error: {e}")
             
         await add_active_chat(chat_id)
         await music_on(chat_id)
         if video:
             await add_active_video_chat(chat_id)
-        if await is_autoend():
-            counter[chat_id] = {}
-            # Users check correctly
-            try:
-                users = len(await assistant.get_participants(chat_id))
-                if users == 1:
-                    autoend[chat_id] = datetime.now() + timedelta(minutes=1)
-            except:
-                pass
 
     async def change_stream(self, chat_id):
         client = await group_assistant(self, chat_id)
@@ -175,23 +151,17 @@ class Call(PyTgCalls):
             await auto_clean(popped)
             if not check:
                 await _clear_(chat_id)
-                return await client.leave_group_call(chat_id)
+                return await client.leave_call(chat_id)
         except:
             await _clear_(chat_id)
-            try: return await client.leave_group_call(chat_id)
+            try: return await client.leave_call(chat_id)
             except: return
 
-        # Stream update logic 
-        # (Assuming the logic for title, user, etc. is already defined in your YouTube module)
+        # Naya Gaana Play Logic
         try:
             queued = check[0]["file"]
-            language = await get_lang(chat_id)
-            _ = get_string(language)
-            title = (check[0]["title"]).title()
-            user = check[0]["by"]
-            original_chat_id = check[0]["chat_id"]
-            streamtype = str(check[0]["streamtype"])
             videoid = check[0]["vidid"]
+            streamtype = str(check[0]["streamtype"])
             video = streamtype == "video"
 
             stream = types.MediaStream(
@@ -201,31 +171,11 @@ class Call(PyTgCalls):
                 video_flags=types.MediaStream.Flags.AUTO_DETECT if video else types.MediaStream.Flags.IGNORE,
             )
             await client.play(chat_id, stream)
-            
-            # Send Notification
-            img = await gen_thumb(videoid)
-            button = stream_markup(_, chat_id)
-            run = await app.send_photo(
-                chat_id=original_chat_id,
-                photo=img,
-                caption=_["stream_1"].format(f"https://t.me/{app.username}?start=info_{videoid}", title[:23], check[0]["dur"], user),
-                reply_markup=InlineKeyboardMarkup(button),
-            )
-            db[chat_id][0]["mystic"] = run
         except Exception as e:
             LOGGER(__name__).error(f"Error in change_stream: {e}")
 
-    async def ping(self):
-        if not self.clients:
-            return "0"
-        pings = []
-        for client in self.clients:
-            pings.append(client.ping)
-        return str(round(sum(pings) / len(pings), 3))
-
     async def start(self):
         LOGGER(__name__).info("Starting Assistants...\n")
-        # Clients list properly append ho rahi hai start hote hi
         if config.STRING1:
             await self.one.start()
             self.clients.append(self.one)
@@ -248,13 +198,6 @@ class Call(PyTgCalls):
             async def update_handler(_, update: types.Update) -> None:
                 if isinstance(update, types.StreamEnded):
                     await self.change_stream(update.chat_id)
-                elif isinstance(update, types.ChatUpdate):
-                    if update.status in [
-                        types.ChatUpdate.Status.KICKED,
-                        types.ChatUpdate.Status.LEFT_GROUP,
-                        types.ChatUpdate.Status.CLOSED_VOICE_CHAT,
-                    ]:
-                        await self.stop_stream(update.chat_id)
 
 Aviax = Call()
 
