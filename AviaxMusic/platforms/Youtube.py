@@ -1,18 +1,18 @@
 import os
 import re
 import json
+import yt_dlp
 import random
+import logging
 import aiohttp
 import asyncio
 from typing import Union
-
-import yt_dlp
 from pyrogram.enums import MessageEntityType
 from pyrogram.types import Message
-from py_yt import VideosSearch
-
+from py_yt import VideosSearch, Playlist
 from AviaxMusic.utils.database import is_on_off
 from AviaxMusic.utils.formatters import time_to_seconds
+
 from config import API_URL, VIDEO_API_URL, API_KEY
 
 
@@ -34,7 +34,6 @@ async def download_song(link: str):
     for ext in ["mp3", "m4a", "webm"]:
         file_path = f"{download_folder}/{video_id}.{ext}"
         if os.path.exists(file_path):
-            #print(f"File already exists: {file_path}")
             return file_path
         
     song_url = f"{API_URL}/song/{video_id}?api={API_KEY}"
@@ -228,7 +227,8 @@ class YouTubeAPI:
         if message_1.reply_to_message:
             messages.append(message_1.reply_to_message)
         text = ""
-        offset = length = link = None
+        offset = None
+        length = None
         for message in messages:
             if offset:
                 break
@@ -237,16 +237,17 @@ class YouTubeAPI:
                     if entity.type == MessageEntityType.URL:
                         text = message.text or message.caption
                         offset, length = entity.offset, entity.length
-                        link = text[offset : offset + length]
                         break
             elif message.caption_entities:
                 for entity in message.caption_entities:
                     if entity.type == MessageEntityType.TEXT_LINK:
-                        link = entity.url
-
-        if link:
-            return link.split("&si")[0].split("?si")[0]
-        return None
+                        return entity.url
+        if offset in (None,):
+            return None
+        umm = text[offset : offset + length]
+        if "?si=" in umm:
+            umm = umm.split("?si=")[0]
+        return umm
 
     async def details(self, link: str, videoid: Union[bool, str] = None):
         if videoid:
@@ -333,24 +334,21 @@ class YouTubeAPI:
     async def playlist(self, link, limit, user_id, videoid: Union[bool, str] = None):
         if videoid:
             link = self.listbase + link
-        if "&" in link:
-            link = link.split("&")[0]
-        
-        cookie_file = cookie_txt_file()
-        if not cookie_file:
-            return []
-            
-        playlist = await shell_cmd(
-            f"yt-dlp -i --get-id --flat-playlist --cookies {cookie_file} --playlist-end {limit} --skip-download {link}"
-        )
         try:
-            result = playlist.split("\n")
-            for key in result:
-                if key == "":
-                    result.remove(key)
+            plist = await Playlist.get(link)
         except:
-            result = []
-        return result
+            return []
+
+        videos = plist.get("videos") or []
+        ids: list[str] = []
+        for data in videos[:limit]:
+            if not data:
+                continue
+            vid = data.get("id")
+            if not vid:
+                continue
+            ids.append(vid)
+        return ids
 
     async def track(self, link: str, videoid: Union[bool, str] = None):
         if videoid:
@@ -594,4 +592,3 @@ class YouTubeAPI:
             direct = True
             downloaded_file = await download_song(link)
         return downloaded_file, direct
-
