@@ -2,8 +2,8 @@ import asyncio
 import os
 import time
 from typing import Union
-
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Voice
+from pyrogram.errors import MessageIdInvalid # Import error handling
 
 import config
 from AviaxMusic import app
@@ -13,7 +13,6 @@ from AviaxMusic.utils.formatters import (
     get_readable_time,
     seconds_to_min,
 )
-
 
 class TeleAPI:
     def __init__(self):
@@ -27,7 +26,10 @@ class TeleAPI:
         for x in out:
             if j <= 2:
                 j += 1
-                await message.reply_text(x, disable_web_page_preview=True)
+                try:
+                    await message.reply_text(x, disable_web_page_preview=True)
+                except:
+                    pass
         return True
 
     async def get_link(self, message):
@@ -41,13 +43,6 @@ class TeleAPI:
         except:
             file_name = "ᴛᴇʟᴇɢʀᴀᴍ ᴀᴜᴅɪᴏ" if audio else "ᴛᴇʟᴇɢʀᴀᴍ ᴠɪᴅᴇᴏ"
         return file_name
-
-    async def get_duration(self, file):
-        try:
-            dur = seconds_to_min(file.duration)
-        except:
-            dur = "Unknown"
-        return dur
 
     async def get_duration(self, filex, file_path):
         try:
@@ -96,6 +91,7 @@ class TeleAPI:
         higher = [5, 10, 20, 40, 66, 80, 99]
         checker = [5, 10, 20, 40, 66, 80, 99]
         speed_counter = {}
+        
         if os.path.exists(fname):
             return True
 
@@ -105,48 +101,45 @@ class TeleAPI:
                     return
                 current_time = time.time()
                 start_time = speed_counter.get(message.id)
+                if not start_time:
+                    return
+                
                 check_time = current_time - start_time
+                if check_time <= 0: return # Prevent division by zero
+
                 upl = InlineKeyboardMarkup(
-                    [
-                        [
-                            InlineKeyboardButton(
-                                text="ᴄᴀɴᴄᴇʟ",
-                                callback_data="stop_downloading",
-                            ),
-                        ]
-                    ]
+                    [[InlineKeyboardButton(text="ᴄᴀɴᴄᴇʟ", callback_data="stop_downloading")]]
                 )
-                percentage = current * 100 / total
-                percentage = str(round(percentage, 2))
+                
+                percentage_raw = current * 100 / total
                 speed = current / check_time
                 eta = int((total - current) / speed)
-                eta = get_readable_time(eta)
-                if not eta:
-                    eta = "0 sᴇᴄᴏɴᴅs"
+                eta = get_readable_time(eta) or "0 sᴇᴄᴏɴᴅs"
+                
                 total_size = convert_bytes(total)
                 completed_size = convert_bytes(current)
-                speed = convert_bytes(speed)
-                percentage = int((percentage.split("."))[0])
+                speed_str = convert_bytes(speed)
+                percentage_int = int(percentage_raw)
+
                 for counter in range(7):
-                    low = int(lower[counter])
-                    high = int(higher[counter])
-                    check = int(checker[counter])
-                    if low < percentage <= high:
-                        if high == check:
+                    if lower[counter] < percentage_int <= higher[counter]:
+                        if higher[counter] == checker[counter]:
                             try:
+                                # Fixed percentage formatting
+                                p_str = f"{percentage_raw:.2f}%"
                                 await mystic.edit_text(
                                     text=_["tg_1"].format(
                                         app.mention,
                                         total_size,
                                         completed_size,
-                                        percentage[:5],
-                                        speed,
+                                        p_str,
+                                        speed_str,
                                         eta,
                                     ),
                                     reply_markup=upl,
                                 )
                                 checker[counter] = 100
-                            except:
+                            except (MessageIdInvalid, Exception):
                                 pass
 
             speed_counter[message.id] = time.time()
@@ -156,21 +149,31 @@ class TeleAPI:
                     file_name=fname,
                     progress=progress,
                 )
+                
                 try:
-                    elapsed = get_readable_time(
-                        int(int(time.time()) - int(speed_counter[message.id]))
-                    )
+                    elapsed = get_readable_time(int(time.time() - speed_counter[message.id]))
                 except:
                     elapsed = "0 sᴇᴄᴏɴᴅs"
-                await mystic.edit_text(_["tg_2"].format(elapsed))
-            except:
-                await mystic.edit_text(_["tg_3"])
+
+                try:
+                    await mystic.edit_text(_["tg_2"].format(elapsed))
+                except (MessageIdInvalid, Exception):
+                    pass
+            except Exception:
+                try:
+                    await mystic.edit_text(_["tg_3"])
+                except:
+                    pass
 
         task = asyncio.create_task(down_load())
         config.lyrical[mystic.id] = task
         await task
+        
         verify = config.lyrical.get(mystic.id)
         if not verify:
             return False
-        config.lyrical.pop(mystic.id)
+            
+        if mystic.id in config.lyrical:
+            config.lyrical.pop(mystic.id)
         return True
+
