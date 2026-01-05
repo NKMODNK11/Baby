@@ -121,7 +121,6 @@ class Call(PyTgCalls):
             video_flags=types.MediaStream.Flags.AUTO_DETECT if video else types.MediaStream.Flags.IGNORE,
         )
         try:
-            # FIX: join_group_call ko hata kar play use kiya jo purane version ke liye hai
             await assistant.play(chat_id, stream)
         except exceptions.NoActiveGroupCall:
             raise AssistantErr(_["call_8"])
@@ -157,12 +156,20 @@ class Call(PyTgCalls):
             try: return await client.leave_call(chat_id)
             except: return
 
-        # Naya Gaana Play Logic
         try:
             queued = check[0]["file"]
             videoid = check[0]["vidid"]
             streamtype = str(check[0]["streamtype"])
             video = streamtype == "video"
+
+            # 502 ERROR BYPASS: Agar video id hai toh fresh link fetch karne ki koshish karein
+            if "vid_" in queued or "live_" in queued:
+                try:
+                    # Yahan direct YouTube logic call hoga
+                    file_path, direct = await YouTube.download(videoid, video=video)
+                    queued = file_path
+                except:
+                    pass 
 
             stream = types.MediaStream(
                 media_path=queued,
@@ -171,8 +178,22 @@ class Call(PyTgCalls):
                 video_flags=types.MediaStream.Flags.AUTO_DETECT if video else types.MediaStream.Flags.IGNORE,
             )
             await client.play(chat_id, stream)
+            
+            # Message update
+            img = await gen_thumb(videoid)
+            language = await get_lang(chat_id)
+            _ = get_string(language)
+            button = stream_markup(_, chat_id)
+            await app.send_photo(
+                chat_id=check[0]["chat_id"],
+                photo=img,
+                caption=_["stream_1"].format(f"https://t.me/{app.username}?start=info_{videoid}", check[0]["title"][:23], check[0]["dur"], check[0]["by"]),
+                reply_markup=InlineKeyboardMarkup(button),
+            )
         except Exception as e:
             LOGGER(__name__).error(f"Error in change_stream: {e}")
+            # Agar fail ho jaye toh skip karne ki koshish karein
+            await self.change_stream(chat_id)
 
     async def start(self):
         LOGGER(__name__).info("Starting Assistants...\n")
@@ -200,4 +221,3 @@ class Call(PyTgCalls):
                     await self.change_stream(update.chat_id)
 
 Aviax = Call()
-
