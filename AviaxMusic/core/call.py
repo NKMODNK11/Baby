@@ -162,14 +162,16 @@ class Call(PyTgCalls):
             streamtype = str(check[0]["streamtype"])
             video = streamtype == "video"
 
-            # 502 ERROR BYPASS: Agar video id hai toh fresh link fetch karne ki koshish karein
+            # 502 ERROR BYPASS LOGIC
+            # Agar purana file path invalid hai, toh re-download attempt karein
             if "vid_" in queued or "live_" in queued:
                 try:
-                    # Yahan direct YouTube logic call hoga
                     file_path, direct = await YouTube.download(videoid, video=video)
                     queued = file_path
-                except:
-                    pass 
+                except Exception as e:
+                    LOGGER(__name__).error(f"API 502 Error during switch: {e}")
+                    # Auto-skip to next if this fails
+                    return await self.change_stream(chat_id)
 
             stream = types.MediaStream(
                 media_path=queued,
@@ -179,7 +181,7 @@ class Call(PyTgCalls):
             )
             await client.play(chat_id, stream)
             
-            # Message update
+            # Message notification update
             img = await gen_thumb(videoid)
             language = await get_lang(chat_id)
             _ = get_string(language)
@@ -191,9 +193,9 @@ class Call(PyTgCalls):
                 reply_markup=InlineKeyboardMarkup(button),
             )
         except Exception as e:
-            LOGGER(__name__).error(f"Error in change_stream: {e}")
-            # Agar fail ho jaye toh skip karne ki koshish karein
-            await self.change_stream(chat_id)
+            LOGGER(__name__).error(f"Critical Switch Error: {e}")
+            # Agar playback fail ho toh agla try karein
+            return await self.change_stream(chat_id)
 
     async def start(self):
         LOGGER(__name__).info("Starting Assistants...\n")
