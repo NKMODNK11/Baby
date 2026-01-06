@@ -24,7 +24,7 @@ LOGGER_ID = LOG_GROUP_ID
 
 # Get this value from @MissRose_Bot on Telegram by /id
 OWNER_ID = int(getenv("OWNER_ID", None))
-DURATION_LIMIT_MIN = int(getenv(\"DURADURATION_LIMIT_MIN = int(getenv(\"DURATION_LIMIT\", 60))TION_LIMIT\", 60))
+DURATION_LIMIT_MIN = int(getenv("DURATION_LIMIT", "60"))
 ## Fill these variables if you're deploying on heroku.
 # Your heroku app name
 HEROKU_APP_NAME = getenv("HEROKU_APP_NAME")
@@ -121,5 +121,6 @@ if SUPPORT_GROUP:
         raise SystemExit(
             "[ERROR] - Your SUPPORT_GROUP url is wrong. Please ensure that it starts with https://"
         )
+
 
 
